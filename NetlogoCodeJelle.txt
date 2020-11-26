@@ -1,0 +1,100 @@
+turtles-own [ balance status ]
+
+
+to setup
+  clear-all
+  create-turtles 500 [
+    set balance startcap
+    set shape "circle"
+    set color green
+    set size 2
+    set status "neutral"
+
+    setxy balance random-ycor
+  ]
+  reset-ticks
+end
+
+;; Hiermee zet je de parameters terug naar de 'standaardwaarden'
+to reset
+  clear-all
+  set startcap 100
+  set rich 300
+  set poor 25
+  set stealing false
+  set salary false
+  set spend_in_group false
+  reset-ticks
+  setup
+end
+
+
+to go
+  ;;Roept elke 1000 ticks salaris aan (wanneer salaris aan staat)
+  if salary = true [ if ticks mod 1000 = 0 [ ask turtles [ salarys ] ] ]
+  ;; Roept transact functie aan
+  ask turtles with [ balance > 0 ] [ transact ]
+  ;; Heeft kans van 1 op 5000 dat een arme turtle de steal functie aanroept op een rijke turtle. (kan alleen als stealing aan staat en er minstends 3 rijke turtles zijn)
+  if stealing = true [ ask turtles with [ status = "poor"] [ if (count turtles with [ status = "rich" ]) > 3 [ if (random 5000) = 1 [ steal ] ] ] ]
+  ;; Houd de turtles binnen de grid
+  ask turtles [ if balance <= max-pxcor [ set xcor balance ] ]
+
+  ;; Update de status
+  ask turtles [
+    set status (ifelse-value
+      balance >= rich [ "rich" ]
+      balance <= poor [ "poor" ]
+      balance > poor and balance < rich [ "neutral" ])
+  ]
+
+  ;; Update de kleuren
+  ask turtles [
+    set color (ifelse-value
+      status = "rich" [ red ]
+      status = "poor" [ gray ]
+      status = "neutral" [ green ])
+  ]
+  tick
+  end
+
+
+to transact
+  ifelse spend_in_group = true
+  ;; Transact met 1 van de turtles die ...% dichtbij ligt
+  [set balance balance - 1 ask one-of min-n-of (count turtles * (group_size / 100)) turtles [ abs(xcor - [ xcor ] of myself) ] [ set balance balance + 1 ]]
+  ;; Transact met 1 van alle turtles
+  [set balance balance - 1 ask one-of other turtles [ set balance balance + 1 ]] ;; hier staat eigenlijk: balance = balance-1
+end
+
+
+to steal
+  let steal_amount random (rich * 0.50) ;; bepaalt hoeveel er gestolen word
+  if (random 10) = 1 [ show "Turtle died" die ] ;; bepaalt of het gelukt is (zo niet = dood)
+  show "Heeft gestolen"
+  set balance balance + steal_amount ask one-of other turtles with [ status = "rich" ] [ set balance balance - steal_amount  show "Is bestolen"] ;; Maakt het geld over en schrijft af
+end
+
+to salarys
+  ;; Geeft elke status een ander salaris
+    set balance balance + (ifelse-value
+      status = "rich" [ 5 ]
+      status = "neutral" [ 3 ]
+      status = "poor" [ 1 ])
+end
+
+;; Report functies voor de grafieken
+to-report top10
+  report sum [ balance ] of max-n-of (count turtles * 0.10) turtles [ balance ]
+end
+
+to-report bottom50
+  report sum [ balance ] of min-n-of (count turtles * 0.50) turtles [ balance ]
+end
+
+to-report toprich
+  report (sum [ balance ] of  turtles with [ status = "rich" ]) / count turtles with [ status = "rich" ]
+end
+
+to-report bottompoor
+  report (sum [ balance ] of  turtles with [ status = "poor" ]) / count turtles with [ status = "poor" ]
+end
