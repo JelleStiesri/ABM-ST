@@ -415,6 +415,16 @@ group_size
 %
 HORIZONTAL
 
+TEXTBOX
+31
+357
+181
+399
+Geef alleen geld aan mensen die ..% dichtbij staan\n\n
+11
+0.0
+1
+
 @#$#@#$#@
 ## WHAT IS IT?
 
