@@ -357,7 +357,7 @@ stealing
 -1000
 
 MONITOR
-482
+444
 466
 651
 511
@@ -368,7 +368,7 @@ bottompoor
 11
 
 MONITOR
-481
+443
 519
 651
 564
